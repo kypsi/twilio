@@ -1,6 +1,16 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import History from "@/components/History";
+import { useState, ChangeEvent, useEffect } from "react";
+
+interface HistoryItem {
+  id: string;
+  from: string;
+  to: string;
+  message: string;
+  date: string;
+}
+
 
 const Home = () => {
   const [numbers, setNumbers] = useState<string[]>([]);
@@ -8,8 +18,35 @@ const Home = () => {
   const [phoneInput, setPhoneInput] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
 
-  // Validate phone number (basic check for numbers only)
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch("/api/message-history");
+      const data = await res.json();
+
+      if (res.ok) {
+        setHistory(data.records);
+        console.log(data.records)
+      } else {
+        console.error("Failed to fetch history", data.error);
+      }
+    } catch (err) {
+      console.error("Error fetching history", err);
+    } finally {
+      setLoadingHistory(false);
+
+    }
+  };
+
   const isValidPhoneNumber = (num: string) => /^[\d+\s-]+$/.test(num.trim());
 
 
@@ -61,12 +98,20 @@ const Home = () => {
       const response = await fetch("/api/send-sms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numbers, message }),
+        body: JSON.stringify({
+          numbers,
+          message
+        }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (response.ok) {
+        setStatus("Message sent successfully.");
+        setNumbers([]);
+        setMessage("");
+        fetchHistory();
+      } else {
         throw new Error(data.error || "Failed to send messages.");
       }
 
@@ -100,18 +145,6 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Display Added Numbers */}
-      {/* {numbers.length > 0 && (
-        <ul className="mb-4">
-          {numbers.map((num, index) => (
-            <li key={index} className="bg-gray-100 p-2 my-1 rounded">
-              {num}
-            </li>
-          ))}
-        </ul>
-      )} */}
-      {/* Display Added Numbers */}
-
       {numbers.length > 0 && (
         <ul className="mb-4">
           {numbers.map((num, index) => (
@@ -127,7 +160,6 @@ const Home = () => {
           ))}
         </ul>
       )}
-
 
       {/* Message Input */}
       <textarea
@@ -149,6 +181,19 @@ const Home = () => {
       {/* Error & Status Messages */}
       {error && <p className="mt-4 text-center text-sm text-red-500">{error}</p>}
       {status && <p className="mt-4 text-center text-sm text-gray-700">{status}</p>}
+
+      <button
+        onClick={() => {
+          setShowHistory(!showHistory);
+          if (!showHistory) fetchHistory();
+        }}
+        className="fixed bottom-6 right-6 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-full shadow-lg transition-all"
+      >
+        {showHistory ? "Close History" : "View History"}
+      </button>
+
+
+      {showHistory && <History history={history} loading={loadingHistory} />}
     </div>
   );
 };
