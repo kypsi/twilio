@@ -11,7 +11,6 @@ interface HistoryItem {
   date: string;
 }
 
-
 const Home = () => {
   const [numbers, setNumbers] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
