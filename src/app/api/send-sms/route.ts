@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         throw new Error(`Invalid phone number format: ${number}`);
       }
 
-      console.log(`Sending SMS to: ${number}`); // Debugging log
+      console.log(`Sending SMS to: ${number}`); // for debugging
       return client.messages.create({
         body: message,
         from: senderNumber,
