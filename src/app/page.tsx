@@ -13,7 +13,7 @@ interface HistoryItem {
 
 const senderOptions = [
   { name: "only working", number: "+16813217557" },
-  { name: "Bob", number: "+16813217457" },
+  { name: "Elei", number: "+18555966238" },
   { name: "Charlie", number: "+16813317557" },
   { name: "David", number: "+16813117557" },
   { name: "Emma", number: "+16819217557" },
