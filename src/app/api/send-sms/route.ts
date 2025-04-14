@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       return client.messages.create({
         body: message,
         from: senderNumber,
-        to: numbers.join(', '),
+        to: number,
       });
     });
 
