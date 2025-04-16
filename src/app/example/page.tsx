@@ -104,6 +104,7 @@ const MessageApp = () => {
     };
 
     
+
     return (
         <div className="flex h-screen">
             {/* Message History */}
