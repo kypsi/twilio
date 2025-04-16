@@ -1,44 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { twiml } from 'twilio';
-import { airTableBase } from '@/lib/airtable';
-import 'dotenv/config';
+// app/api/receive-sms/route.ts
+import { NextResponse } from 'next/server';
+import Airtable from 'airtable';
 
-export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+// Initialize Airtable client
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID as string);
 
-  const from = formData.get('From') as string;
-  const to = formData.get('To') as string;
-  const body = formData.get('Body') as string;
+export async function POST(req: Request) {
+  const { From, To, Body } = await req.json(); // Get data from the request body
 
-  console.log("📩 New message received:");
-  console.log("From:", from);
-  console.log("To:", to);
-  console.log("Message:", body);
+  console.log("📩 New SMS received!");
+  console.log("From:", From);
+  console.log("To:", To);
+  console.log("Body:", Body);
 
+  // Save to Airtable
   try {
-    await airTableBase(process.env.AIRTABLE_TABLE_NAME!).create([
+    await base(process.env.AIRTABLE_TABLE_NAME as string).create([
       {
         fields: {
-          from,
-          to,
-          message: body,
-          date: new Date().toISOString(),
-        } as any, // 👈 temporarily use 'any' to satisfy TS, or use custom interface
+          from: From,
+          to: To,
+          message: Body,
+          date: new Date().toISOString(), // You can change the format as needed
+        },
       },
     ]);
-    console.log("✅ Message saved to Airtable");
-  } catch (err) {
-    console.error("❌ Error saving to Airtable:", err);
+
+    console.log("✅ SMS saved to Airtable");
+
+    return NextResponse.json({ message: "Message received and saved to Airtable." }, { status: 200 });
+  } catch (error) {
+    console.error("Error saving to Airtable:", error);
+    return NextResponse.json({ error: "Failed to save message." }, { status: 500 });
   }
-
-  const messagingResponse = new twiml.MessagingResponse();
-  messagingResponse.message("Thanks! We received your message.");
-
-  return new NextResponse(messagingResponse.toString(), {
-    headers: { 'Content-Type': 'text/xml' },
-  });
 }
-
-
-
-//in tetsing

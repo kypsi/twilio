@@ -10,12 +10,20 @@ const senderOptions = [
     { name: "Frank", number: "+16813717557" },
 ];
 
+interface HistoryItem {
+    id: string;
+    from: string;
+    to: string;
+    message: string;
+    date: string;
+}
+
 const MessageApp = () => {
     const [message, setMessage] = useState('');
     const [senderNumber, setSenderNumber] = useState('');
     const [numbers, setNumbers] = useState<string[]>([]);
     const [phoneInput, setPhoneInput] = useState('');
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<HistoryItem[]>([]);
     const [error, setError] = useState('');
     const [status, setStatus] = useState<string>("");
 
@@ -54,7 +62,13 @@ const MessageApp = () => {
                 setNumbers([]);
                 setHistory(prevHistory => [
                     ...prevHistory,
-                    { From: senderNumber, To: numbers.join(', '), Message: message }
+                    {
+                        id: `${Date.now()}`, // Generate a unique id (e.g., timestamp)
+                        from: senderNumber,
+                        to: numbers.join(', '),
+                        message: message,
+                        date: new Date().toISOString(), // Current date/time
+                    },
                 ]);
             } else {
                 setError('Failed to send messages: ' + data.error);
@@ -89,10 +103,7 @@ const MessageApp = () => {
         setPhoneInput("");
     };
 
-    const removeNumber = (index: number) => {
-        setNumbers((prev) => prev.filter((_, i) => i !== index));
-    };
-
+    
     return (
         <div className="flex h-screen">
             {/* Message History */}
