@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
           From: senderNumber,
           To: numbers.join(", "),
           Message: message,
+          Type: "Sent"
         },
       },
     ]);

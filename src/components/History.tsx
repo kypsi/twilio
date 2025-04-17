@@ -4,6 +4,7 @@ interface HistoryItem {
   to: string;
   message: string;
   date: string;
+  type: string
 }
 
 const History = ({
@@ -41,8 +42,13 @@ const History = ({
                 From: {item.from} → To: {item.to}
               </div>
               <div className="text-gray-800 text-base mb-1"><span className="font-bold">Message: </span>{item.message}</div>
-              <div className="text-sm text-gray-600 mb-1 text-right">
-                {new Date(item.date).toLocaleString()}
+              <div className="flex justify-between ">
+                <div className="text-sm text-gray-600 mb-1 text-left">
+                  {item.type ? item.type : "n/a"}
+                </div>
+                <div className="text-sm text-gray-600 mb-1 text-right">
+                  {new Date(item.date).toLocaleString()}
+                </div>
               </div>
 
             </div>

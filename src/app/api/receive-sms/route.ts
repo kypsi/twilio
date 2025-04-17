@@ -18,10 +18,10 @@ export async function POST(req: Request) {
     await base(process.env.AIRTABLE_TABLE_NAME as string).create([
       {
         fields: {
-          from: From,
-          to: To,
-          message: Body,
-          date: new Date().toISOString(), // You can change the format as needed
+          From: From,
+          To: To,
+          Message: Body,
+          Type: "Received"
         },
       },
     ]);

@@ -9,6 +9,7 @@ interface HistoryItem {
   to: string;
   message: string;
   date: string;
+  type: string;
 }
 
 const senderOptions = [
