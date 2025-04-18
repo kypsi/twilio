@@ -26,17 +26,17 @@ export async function POST(req: Request) {
     // console.log("To:", To);
     // console.log("Body:", Body);
 
-    // Always add a dummy row to confirm the API was hit
-    await base(process.env.AIRTABLE_TABLE_NAME as string).create([
-      {
-        fields: {
-          From: "Webhook Triggered",
-          To: "N/A",
-          Message: "Dummy entry to confirm API was hit.",
-          Type: "Debug",
-        },
-      },
-    ]);
+    // // Always add a dummy row to confirm the API was hit
+    // await base(process.env.AIRTABLE_TABLE_NAME as string).create([
+    //   {
+    //     fields: {
+    //       From: "Webhook Triggered",
+    //       To: "N/A",
+    //       Message: "Dummy entry to confirm API was hit.",
+    //       Type: "Debug",
+    //     },
+    //   },
+    // ]);
 
     if(From && To && Body){
       await base(process.env.AIRTABLE_TABLE_NAME  as string).create([

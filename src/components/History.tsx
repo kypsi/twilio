@@ -14,6 +14,7 @@ const History = ({
   history: HistoryItem[];
   loading: boolean;
 }) => {
+  // console.log("History", history)
   return (
     <div className="mt-6 max-h-80 overflow-y-auto border-t pt-4 px-2">
       <h3 className="text-xl font-semibold mb-4 text-center text-gray-700">

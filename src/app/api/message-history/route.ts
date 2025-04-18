@@ -8,6 +8,7 @@ interface HistoryItem {
     to: string;
     message: string;
     date: string;
+    type: string;
 }
 
 export async function GET() {
@@ -25,6 +26,7 @@ export async function GET() {
                         to: record.get("To") as string,
                         message: record.get("Message") as string,
                         date: record.get("Date") as string,
+                        type: record.get("Type") as string,
                     });
                 });
                 fetchNextPage();

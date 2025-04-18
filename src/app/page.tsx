@@ -13,12 +13,13 @@ interface HistoryItem {
 }
 
 const senderOptions = [
-  { name: "only working", number: "+16813217557" },
   { name: "Elei", number: "+18555966238" },
-  { name: "Charlie", number: "+16813317557" },
-  { name: "David", number: "+16813117557" },
-  { name: "Emma", number: "+16819217557" },
-  { name: "Frank", number: "+16813717557" },
+  { name: "Jesus", number: "+17572605882" },
+  { name: "Alex", number: "+17573308270" },
+  { name: "Osmar", number: "+17473593158" },
+  { name: "Beatriz", number: "+17577202930" },
+  { name: "Suleyma", number: "+17575420993" },
+  { name: "Jean", number: "+12028835964" },
 ]
 
 const Home = () => {
@@ -45,7 +46,7 @@ const Home = () => {
 
       if (res.ok) {
         setHistory(data.records);
-        console.log(data.records)
+        console.log("history",data.records);
       } else {
         console.error("Failed to fetch history", data.error);
       }
