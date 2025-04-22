@@ -1,11 +1,21 @@
-import Airtable, { FieldSet, Base } from 'airtable';
+import Airtable from 'airtable'
 
-Airtable.configure({
-  apiKey: process.env.AIRTABLE_API_KEY!,
-});
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID as string)
 
-const base: Base = Airtable.base(process.env.AIRTABLE_BASE_ID!);
+export async function getUserByEmail(email: string) {
+  const records = await base('users').select({
+    filterByFormula: `{email} = "${email}"`,
+    maxRecords: 1,
+  }).firstPage()
 
-export const airTableBase = (tableName: string) => {
-  return base<Partial<FieldSet>>(tableName);
-};
+  if (records.length === 0) return null
+
+  const record = records[0]
+  return {
+    id: record.id,
+    email: record.get('email'),
+    password: record.get('password'),
+    twilioNumber: record.get('twilioNumber'),
+    name: record.get('name'),
+  }
+}
