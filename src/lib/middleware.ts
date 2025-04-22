@@ -9,3 +9,5 @@ export function getUserFromRequest(req: NextRequest) {
 
   return verifyToken(token)
 }
+
+
