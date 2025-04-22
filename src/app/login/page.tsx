@@ -19,7 +19,7 @@ export default function LoginPage() {
     const success = await login(email, password)
 
     if (success) {
-      router.push('/chat') // Redirect to chat page after successful login
+      router.push('/') // Redirect to chat page after successful login
     } else {
       setError('Invalid credentials. Please try again.')
     }

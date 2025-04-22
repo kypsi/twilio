@@ -1,4 +1,5 @@
 import Airtable from 'airtable'
+import bcrypt from 'bcryptjs'
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID as string)
 
@@ -18,4 +19,30 @@ export async function getUserByEmail(email: string) {
     twilioNumber: record.get('twilioNumber'),
     name: record.get('name'),
   }
+}
+
+export async function createUser({
+  name,
+  email,
+  password,
+  twilioNumber,
+  role,
+}: {
+  name: string
+  email: string
+  password: string
+  twilioNumber: string
+  role: string
+}) {
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  const record = await base('users').create({
+    name,
+    email,
+    password: hashedPassword,
+    twilioNumber,
+    role,
+  })
+
+  return record.getId()
 }

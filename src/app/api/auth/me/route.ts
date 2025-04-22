@@ -1,10 +1,25 @@
-// pages/api/auth/me.ts
-import { getUserFromRequest } from '@/lib/middleware'
-import type { NextApiRequest, NextApiResponse } from 'next'
+// src/app/api/auth/me/route.ts
+import { cookies } from 'next/headers'
+import jwt from 'jsonwebtoken'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const user = getUserFromRequest(req)
-  if (!user) return res.status(401).json({ user: null })
+const JWT_SECRET = process.env.JWT_SECRET || 'somesecret'
 
-  res.status(200).json({ user })
+export async function GET() {
+  const cookieStore = cookies()
+  const token = (await cookieStore).get('token')?.value
+
+  if (!token) {
+    return new Response(JSON.stringify({ user: null }), { status: 401 })
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET)
+    return new Response(JSON.stringify({ user: decoded }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  } catch (err) {
+    console.log("Error in api/auth/me:", err);
+    return new Response(JSON.stringify({ user: null }), { status: 401 })
+  }
 }

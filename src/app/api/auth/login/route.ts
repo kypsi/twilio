@@ -1,33 +1,44 @@
-// pages/api/login.ts
-import { NextApiRequest, NextApiResponse } from 'next'
-import jwt from 'jsonwebtoken'
+import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmail } from '@/lib/airtable'
 import { serialize } from 'cookie'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'somesecret'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end()
+export async function POST(req: NextRequest) {
+    const body = await req.json()
+    const { email, password } = body
 
-  const { email, password } = req.body
-  const user = await getUserByEmail(email)
+    const user = await getUserByEmail(email)
 
-  if (!user || user.password !== password) {
-    return res.status(401).json({ message: 'Invalid credentials' })
-  }
+    if (!user) {
+        return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 })
+    }
 
-  const token = jwt.sign(
-    { userId: user.id, email: user.email, twilioNumber: user.twilioNumber },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  )
+    const passwordMatch = await bcrypt.compare(password, user.password as string)
 
-  res.setHeader('Set-Cookie', serialize('token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  }))
+    if (!passwordMatch) {
+        return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 })
+    }
 
-  res.status(200).json({ message: 'Login successful' })
+    const token = jwt.sign(
+        { userId: user.id, email: user.email, twilioNumber: user.twilioNumber },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+    )
+
+    const response = NextResponse.json({ message: 'Login successful' })
+
+    response.headers.set(
+        'Set-Cookie',
+        serialize('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7,
+        })
+    )
+
+    return response
 }

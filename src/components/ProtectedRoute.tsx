@@ -16,9 +16,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
       router.push('/login')
     }
     if (!loading && user && isLoginPage) {
-      router.push('/chat') // Redirect logged-in user away from login page
+      router.push('/') // Redirect logged-in user away from login page
     }
-  }, [user, loading, isLoginPage])
+  }, [user, loading, isLoginPage, router])
 
   if (loading) return <div className="p-4">Loading...</div>
   if (!user && !isLoginPage) return null // Prevent flashing content
