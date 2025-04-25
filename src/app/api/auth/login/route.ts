@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserByEmail } from '@/lib/airtable'
+import { getUserByEmail } from '@/lib/airtable/airtable'
 import { serialize } from 'cookie'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = jwt.sign(
-        { userId: user.id, email: user.email, twilioNumber: user.twilioNumber },
+        { userId: user.id, email: user.email, twilioNumber: user.twilioNumber, name: user.name },
         JWT_SECRET,
         { expiresIn: '7d' }
     )

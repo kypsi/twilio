@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createUser } from '@/lib/airtable'
+import { createUser } from '@/lib/airtable/airtable'
 
 export const POST = async (req: NextRequest) => {
   try {

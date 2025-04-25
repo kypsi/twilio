@@ -18,6 +18,7 @@ export async function getUserByEmail(email: string) {
     password: record.get('password'),
     twilioNumber: record.get('twilioNumber'),
     name: record.get('name'),
+    role: record.get('role')
   }
 }
 

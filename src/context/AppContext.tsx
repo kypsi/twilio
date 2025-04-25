@@ -4,19 +4,24 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@/types/user'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
+import { AppContextType } from '@/types/AppContextType'
+import { Chats } from '@/types/chat'
+import { Contact } from '@/types/contact'
 
-type AppContextType = {
-    user: User | null
-    loading: boolean
-    login: (email: string, password: string) => Promise<boolean>
-    logout: () => void
-}
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null)
-    const [loading, setLoading] = useState(true)
+    const [selectedChatNumber, setSelectedChatNumber ] = useState<string>('')
+    const [loading, setLoading] = useState<boolean>(true)
+    const [chats, setChats] = useState<Chats[]>([])
+    const [selectedConversationId, setSelectedConversationId] = useState<string | null>("");
+    const [showNewMessageComposer, setShowNewMessageComposer] = useState(false);
+    const [selectedChat, setSelectedChat] = useState<string | null>(null);
+    const [contacts, setContacts] = useState<Contact[]>([]);
+
+
     const router = useRouter()
 
     // Fetch user on load
@@ -28,6 +33,20 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             })
             .finally(() => setLoading(false))
     }, [])
+
+    useEffect(() => {
+        if (!user?.twilioNumber) return
+        const fetchChats = async () => {
+            try {
+                const res = await fetch(`/api/dev/messages/recent?twilioNumber=${user.twilioNumber}`)
+                const data = await res.json()
+                setChats(data)
+            } catch (err) {
+                console.error("Failed to fetch chats", err)
+            }
+        }
+        fetchChats()
+    }, [user])
 
     const login = async (email: string, password: string) => {
         try {
@@ -49,7 +68,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <AppContext.Provider value={{ user, loading, login, logout }}>
+        <AppContext.Provider value={{ user, loading, login, logout,contacts, setContacts, selectedChatNumber, setSelectedChatNumber, chats, setChats, selectedConversationId ,setSelectedConversationId, showNewMessageComposer, setShowNewMessageComposer, selectedChat, setSelectedChat }}>
             {children}
         </AppContext.Provider>
     )
