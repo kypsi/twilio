@@ -15,6 +15,7 @@ const ChatWindow: React.FC = () => {
     const { user, selectedChat, contacts  } = useApp();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMsg, setNewMsg] = useState("");
+    const [isSending, setIsSending] = useState(false); // Track sending state
 
     useEffect(() => {
         const fetchMessages = async () => {
@@ -38,7 +39,7 @@ const ChatWindow: React.FC = () => {
 
     const sendMessage = async () => {
         if (!newMsg || !user?.twilioNumber || !selectedChat) return;
-
+        setIsSending(true);
         const res = await fetch('/api/dev/send-sms', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -62,9 +63,11 @@ const ChatWindow: React.FC = () => {
 
             setMessages(prev => [...prev, newMessage]);
             setNewMsg('');
+            setIsSending(false);
         } else {
             alert('Message failed to send');
             console.error(data.error);
+            setIsSending(false);
         }
     };
     
@@ -140,8 +143,9 @@ const ChatWindow: React.FC = () => {
                 <button
                     onClick={sendMessage}
                     className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-full"
+                    disabled={isSending} 
                 >
-                    Send
+                    {isSending ? "Sending..." : "Send"}
                 </button>
             </div>
         </div>
