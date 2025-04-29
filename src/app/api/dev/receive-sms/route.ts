@@ -1,7 +1,7 @@
 // app/api/receive-sms/route.ts
 import { NextResponse } from "next/server";
 import Airtable from "airtable";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID as string
@@ -22,17 +22,16 @@ export async function POST(req: Request) {
     await base("messages").create([
       {
         fields: {
-          messageId: uuidv4(),
-          senderNumber: From,
-          receiverNumber: To,
-          conversationId,
-          messageText: Body,
+          sender_number: From,
+          receiver_number: To,
+          conversation_id: conversationId,
+          chat_id: conversationId,
+          message_text: Body,
           direction: "incoming",
-          timestamp: new Date().toISOString(),
-          isRead: false,
+          is_read: false,
           status: "received",
-          twilioNumber: To,
-          messageBy: "other",
+          twilio_number: To,
+          // messageBy: "other",
         },
       },
     ]);

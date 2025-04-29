@@ -47,7 +47,7 @@ const NewLeftSideBar = () => {
             <button onClick={() => setShowNewMessageComposer(true)} className='flex items-center gap-1.5 lg:gap-x-3 text-black px-4 pt-2 pb-1 lg:py-4 text-base border-b border-gray-200 w-full cursor-pointer'>
                 <div className="w-[50px] h-[50px] rounded-full p-3"><IoAdd className='w-full h-full' /></div> Send New Message
             </button>
-            <div className="py-3 px-2">
+            <div className="py-3 px-2 overflow-y-auto md:h-[calc(100vh_-_82px_-_16px_-_63px_-_40px)] lg:h-[calc(100vh_-_82px_-_16px_-_83px_-_40px)]">
                 {chats.map((chat, idx) => (
                     <button key={idx} onClick={() => {
                         setSelectedChat(chat.number)

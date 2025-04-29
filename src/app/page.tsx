@@ -1,4 +1,5 @@
 "use client"
+// import { CallPulse } from '@/components/callpulse';
 import Navbar from '@/components/Navbar';
 import NewCenterSection from '@/components/NewCenterSection';
 import NewLeftSideBar from '@/components/NewLeftSideBar';
@@ -30,6 +31,7 @@ const Home = () => {
 
   return (
     <>
+    {/* <CallPulse /> */}
       <div className="md:px-3 lg:px-6 md:py-5">
         <div className="max-w-[1750px] mx-auto">
           <Navbar />
