@@ -28,38 +28,74 @@ const Admin = () => {
   }, [])
   
   if(user?.role !== 'admin') return <p>you are not supposed to be here. Please contact admin to get access of admin panel.</p>
+  // const togglePasswordView = async (id: string) => {
+  //   // If password is already shown, just toggle it off
+  //   if (viewPassword[id]) {
+  //     setViewPassword(prev => ({ ...prev, [id]: false }))
+  //     return
+  //   }
+
+  //   try {
+  //     const res = await fetch(`/api/admin/users/password/${id}`, {
+  //       method: 'GET',
+  //       credentials: 'include', // ensures cookies (token) are sent
+  //     })
+
+  //     if (!res.ok) {
+  //       throw new Error('Failed to fetch password')
+  //     }
+
+  //     const data = await res.json()
+
+  //     // Set the password temporarily in user state
+  //     setUsers(prev =>
+  //       prev.map(user =>
+  //         user.id === id ? { ...user, password: data.password } : user
+  //       )
+  //     )
+
+  //     setViewPassword(prev => ({ ...prev, [id]: true }))
+  //   } catch (error) {
+  //     console.error(error)
+  //     alert('Failed to fetch password.')
+  //   }
+  // }
+
   const togglePasswordView = async (id: string) => {
-    // If password is already shown, just toggle it off
     if (viewPassword[id]) {
       setViewPassword(prev => ({ ...prev, [id]: false }))
       return
     }
-
+  
     try {
-      const res = await fetch(`/api/admin/users/password/${id}`, {
-        method: 'GET',
-        credentials: 'include', // ensures cookies (token) are sent
+      const res = await fetch('/api/admin/users/password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
       })
-
+  
       if (!res.ok) {
         throw new Error('Failed to fetch password')
       }
-
+  
       const data = await res.json()
-
-      // Set the password temporarily in user state
+  
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, password: data.password } : user
         )
       )
-
+  
       setViewPassword(prev => ({ ...prev, [id]: true }))
     } catch (error) {
       console.error(error)
       alert('Failed to fetch password.')
     }
   }
+  
   const handleDeleteUser = async () => {
     if (!deleteUserId) return
 
