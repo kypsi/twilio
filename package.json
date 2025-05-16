@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.3",
+    "@heroicons/react": "^2.2.0",
     "airtable": "^0.12.2",
     "bcryptjs": "^3.0.2",
     "cookie": "^1.0.2",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
     "next": "15.2.4",

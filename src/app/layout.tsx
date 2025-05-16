@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,12 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AppProvider>
           <ProtectedRoute>
-            {children}
+            <div className="md:px-3 lg:px-6 md:py-5">
+              <div className="max-w-[1750px] mx-auto">
+                <Navbar />
+                {children}
+              </div>
+            </div>
           </ProtectedRoute>
         </AppProvider>
       </body>

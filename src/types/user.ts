@@ -5,4 +5,5 @@ export type User = {
   twilioNumber: string
   role?: string,
   image?: string,
+  password?: string,
 }

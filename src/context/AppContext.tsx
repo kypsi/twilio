@@ -53,6 +53,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             await axios.post('/api/auth/login', { email, password })
             const res = await axios.get('/api/auth/me')
             setUser(res.data.user)
+            console.log('Login successful', res.data.user)
             return true
         } catch (err) {
             console.error('Login error:', err)
