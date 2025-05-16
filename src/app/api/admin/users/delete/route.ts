@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 // import { getUserById, deleteUserById } from '@/lib/airtable/airtable' // you'll create these
 import { decrypt } from '@/lib/auth'
-import jwt from 'jsonwebtoken'
-import { deleteUserById, getUserByEmail, getUserById } from '@/lib/airtable/airtable'
+// import jwt from 'jsonwebtoken'
+import { deleteUserById, getUserByEmail } from '@/lib/airtable/airtable'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_token'
+// const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_token'
 
 export async function POST(req: NextRequest) {
   try {

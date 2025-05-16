@@ -10,6 +10,7 @@ interface Props {
 
 const UpdateUser: React.FC<Props> = ({ user, setEditUser, setUsers }) => {
   const [form, setForm] = useState({
+    id: user.id,
     name: user.name,
     email: user.email,
     twilioNumber: user.twilioNumber || '',
@@ -26,7 +27,7 @@ const UpdateUser: React.FC<Props> = ({ user, setEditUser, setUsers }) => {
   const handleSubmit = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/users/${user.id}`, {
+      const res = await fetch(`/api/admin/users/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

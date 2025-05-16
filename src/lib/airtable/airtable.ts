@@ -1,5 +1,5 @@
 import Airtable from 'airtable'
-import bcrypt from 'bcryptjs'
+// import bcrypt from 'bcryptjs'
 import { encrypt } from '../auth'
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID as string)

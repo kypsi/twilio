@@ -17,16 +17,17 @@ const Admin = () => {
   const [adminPassword, setAdminPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
 
-  if(user?.role !== 'admin') return <p>you are not supposed to be here. Please contact admin to get access of admin panel.</p>
+  
   useEffect(() => {
     fetch('/api/admin/users')
-      .then(res => res.json())
-      .then(data => {
-        setUsers(data)
-        setLoading(false)
-      })
+    .then(res => res.json())
+    .then(data => {
+      setUsers(data)
+      setLoading(false)
+    })
   }, [])
-
+  
+  if(user?.role !== 'admin') return <p>you are not supposed to be here. Please contact admin to get access of admin panel.</p>
   const togglePasswordView = async (id: string) => {
     // If password is already shown, just toggle it off
     if (viewPassword[id]) {
