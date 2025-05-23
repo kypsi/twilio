@@ -5,7 +5,6 @@ import ChatWindow from '../ChatWindow';
 
 const NewCenterSection = () => {
     const { user, loading, showNewMessageComposer, setShowNewMessageComposer, selectedChat } = useApp();
-   
 
     return (
         <div className="w-full md:bg-white md:rounded-2xl lg:rounded-3xl md:shadow-md mb-4 h-full">
