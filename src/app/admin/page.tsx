@@ -17,58 +17,26 @@ const Admin = () => {
   const [adminPassword, setAdminPassword] = useState('')
   const [deleteError, setDeleteError] = useState('')
 
-  
+
   useEffect(() => {
-    fetch('/api/admin/users')
-    .then(res => res.json())
-    .then(data => {
-      setUsers(data)
-      setLoading(false)
-    })
+    fetch('/api/admin/fetch-users')
+      .then(res => res.json())
+      .then(data => {
+        setUsers(data)
+        setLoading(false)
+      })
   }, [])
-  
-  if(user?.role !== 'admin') return <p>you are not supposed to be here. Please contact admin to get access of admin panel.</p>
-  // const togglePasswordView = async (id: string) => {
-  //   // If password is already shown, just toggle it off
-  //   if (viewPassword[id]) {
-  //     setViewPassword(prev => ({ ...prev, [id]: false }))
-  //     return
-  //   }
 
-  //   try {
-  //     const res = await fetch(`/api/admin/users/password/${id}`, {
-  //       method: 'GET',
-  //       credentials: 'include', // ensures cookies (token) are sent
-  //     })
-
-  //     if (!res.ok) {
-  //       throw new Error('Failed to fetch password')
-  //     }
-
-  //     const data = await res.json()
-
-  //     // Set the password temporarily in user state
-  //     setUsers(prev =>
-  //       prev.map(user =>
-  //         user.id === id ? { ...user, password: data.password } : user
-  //       )
-  //     )
-
-  //     setViewPassword(prev => ({ ...prev, [id]: true }))
-  //   } catch (error) {
-  //     console.error(error)
-  //     alert('Failed to fetch password.')
-  //   }
-  // }
+  if (user?.role !== 'admin') return <p>you are not supposed to be here. Please contact admin to get access of admin panel.</p>
 
   const togglePasswordView = async (id: string) => {
     if (viewPassword[id]) {
       setViewPassword(prev => ({ ...prev, [id]: false }))
       return
     }
-  
+
     try {
-      const res = await fetch('/api/admin/users/password', {
+      const res = await fetch('/api/admin/get-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,32 +44,32 @@ const Admin = () => {
         credentials: 'include',
         body: JSON.stringify({ id }),
       })
-  
+
       if (!res.ok) {
         throw new Error('Failed to fetch password')
       }
-  
+
       const data = await res.json()
-  
+
       setUsers(prev =>
         prev.map(user =>
           user.id === id ? { ...user, password: data.password } : user
         )
       )
-  
+
       setViewPassword(prev => ({ ...prev, [id]: true }))
     } catch (error) {
       console.error(error)
       alert('Failed to fetch password.')
     }
   }
-  
+
   const handleDeleteUser = async () => {
     if (!deleteUserId) return
 
     setDeleteError('')
     try {
-      const res = await fetch('/api/admin/users/delete', {
+      const res = await fetch('/api/admin/delete-user', {
         method: 'POST',
         credentials: 'include', // to send cookies/token
         headers: {
@@ -110,7 +78,7 @@ const Admin = () => {
         body: JSON.stringify({
           userId: deleteUserId,
           adminPassword,
-          adminEmail: user?.email,
+          // adminEmail: user?.email,
         }),
       })
 

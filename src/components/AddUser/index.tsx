@@ -21,33 +21,47 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {}
+    const trimmed = Object.fromEntries(Object.entries(formData).map(([k, v]) => [k, v.trim()]))
+
+    if (!trimmed.name) errors.name = 'Name is required'
+    if (!trimmed.email) errors.email = 'Email is required'
+    if (!trimmed.twilioNumber) errors.twilioNumber = 'Twilio number is required'
+
+    if (!trimmed.password) {
+      errors.password = 'Password is required'
+    } else if (trimmed.password.length < 8 || !/\d/.test(trimmed.password) || !/[A-Za-z]/.test(trimmed.password)) {
+      errors.password = 'Password must be at least 8 characters and include letters and numbers'
+    }
+
+    if (trimmed.password !== trimmed.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match'
+    }
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
 
   const handleCreateUser = async () => {
-    const errors: { [key: string]: string } = {}
-    if (!formData.name) errors.name = 'Name is required'
-    if (!formData.email) errors.email = 'Email is required'
-    if (!formData.password) errors.password = 'Password is required'
-    if (formData.password !== formData.confirmPassword)
-      errors.confirmPassword = 'Passwords do not match'
-    if (!formData.twilioNumber) errors.twilioNumber = 'Twilio number is required'
 
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
-    }
+    if (!validateForm()) return
 
     setIsSubmitting(true)
     setSubmitMessage('')
-
+    console.log("frontend",formData)
     try {
-      const res = await fetch('/api/dev/add-user', {
+      const res = await fetch('/api/admin/create-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          twilioNumber: formData.twilioNumber,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password.trim(),
+          twilioNumber: formData.twilioNumber.trim(),
           role: formData.role,
         }),
       })
@@ -70,7 +84,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
 
       setShowCreateModal(false)
       setLoading(true)
-      const updatedUsers = await fetch('/api/admin/users').then(res => res.json())
+      const updatedUsers = await fetch('/api/admin/fetch-users').then(res => res.json())
       setUsers(updatedUsers)
       setLoading(false)
     } catch (err: unknown) {
@@ -85,7 +99,12 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
   }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
-    setFormErrors({ ...formErrors, [e.target.name]: '' }) // clear field error on change
+    setFormErrors({ ...formErrors, [e.target.name]: '' })
+  }
+
+  const togglePasswordVisibility = (field: 'password' | 'confirmPassword') => {
+    if (field === 'password') setShowPassword(!showPassword)
+    else setShowConfirmPassword(!showConfirmPassword)
   }
   return (
     <div>
@@ -108,7 +127,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
               </div>
             ))}
 
-            <div>
+            {/* <div>
               <input
                 type="password"
                 name="password"
@@ -132,7 +151,38 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
               {formErrors.confirmPassword && (
                 <p className="text-red-500 text-sm">{formErrors.confirmPassword}</p>
               )}
-            </div>
+            </div> */}
+
+            {(['password', 'confirmPassword'] as FormField[]).map(field => (
+              <div key={field} className="relative">
+                <input
+                  type={
+                    field === 'password'
+                      ? showPassword
+                        ? 'text'
+                        : 'password'
+                      : showConfirmPassword
+                        ? 'text'
+                        : 'password'
+                  }
+                  name={field}
+                  placeholder={field === 'password' ? 'Password' : 'Confirm Password'}
+                  value={formData[field]}
+                  onChange={handleInputChange}
+                  className="w-full border px-3 py-2 rounded"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 text-sm text-gray-500"
+                  onClick={() => togglePasswordVisibility(field as 'password' | 'confirmPassword')}
+                >
+                  {field === 'password'
+                    ? showPassword ? 'Hide' : 'Show'
+                    : showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+                {formErrors[field] && <p className="text-red-500 text-sm">{formErrors[field]}</p>}
+              </div>
+            ))}
 
             <div>
               Role:
