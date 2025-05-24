@@ -10,18 +10,19 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const { login } = useApp()
   const router = useRouter()
-
+  const [loading, setLoading] = useState(false)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    setLoading(true)
     setError('')
 
     const success = await login(email, password)
-
+     
     if (success) {
       router.push('/') // Redirect to chat page after successful login
     } else {
       setError('Invalid credentials. Please try again.')
+      setLoading(false)
     }
   }
 
@@ -59,8 +60,8 @@ export default function LoginPage() {
 
         {error && <div className="text-red-600 text-sm">{error}</div>}
 
-        <button type="submit" className="w-full mt-4 py-2 bg-blue-600 text-white rounded-md">
-          Login
+        <button disabled={loading} type="submit" className="w-full mt-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer">
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>

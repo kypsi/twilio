@@ -13,8 +13,11 @@ export interface Chat {
 }
 
 export type Chats = {
-    sender_number: string;
-    receiver_number: string;
-    message_text: string;
-    time_stamp: string;
-  }
+    chatId: string;
+    name: string;
+    isGroupChat: boolean;
+    lastMessage: string;
+    lastMessageContent: string;
+    time: string;
+    participantNumbers: string[];
+}

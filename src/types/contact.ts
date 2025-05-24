@@ -1,4 +1,5 @@
 export interface Contact {
+    _id: string | null | undefined;
     id: string;
     name: string;
     phoneNumber: string;

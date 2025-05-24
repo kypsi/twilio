@@ -1,29 +1,33 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { IoIosKeypad } from "react-icons/io";
-import { IoChatbox } from "react-icons/io5";
-import { FaDeleteLeft } from "react-icons/fa6";
-import { FaPlus } from "react-icons/fa";
+import { IoIosKeypad, IoMdAdd } from "react-icons/io";
+// import { IoChatbox } from "react-icons/io5";
+// import { FaDeleteLeft } from "react-icons/fa6";
+// import { FaPlus } from "react-icons/fa";
+import ContactItem from '../ContactItem';
+import Keypad from '../Keypad';
 
 
 const NewRightSideBar = () => {
     const { user, contacts, setContacts, setSelectedChat, setShowNewMessageComposer } = useApp();
     const [showKeypad, setShowKeypad] = useState(false);
     const [error, setError] = useState<string>('')
+    const [contactSaveError, setContactSaveError] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true);
+    const [basePhoneInput, setBasePhoneInput] = useState('');
     const [phoneInput, setPhoneInput] = useState('');
     const [nameInput, setNameInput] = useState('');
     const [showPopup, setShowPopup] = useState(false);
 
     const fetchContacts = async () => {
-        const savedBy = user?.twilioNumber;
+        const savedBy = user?.id;
         if (!savedBy) {
             setError("Something went wrong...")
             return;
         }
         try {
-            const res = await fetch(`/api/dev/get-contacts?savedBy=${encodeURIComponent(savedBy)}`);
+            const res = await fetch(`/api/user/get-contacts?savedBy=${encodeURIComponent(savedBy)}`);
             const data = await res.json();
             setContacts(data.contacts || []);
             setError("")
@@ -37,49 +41,48 @@ const NewRightSideBar = () => {
 
 
     useEffect(() => {
-        if (user?.twilioNumber) {
+        if (user?.id) {
             fetchContacts();
         }
-    }, [user?.twilioNumber]);
-
-
-    useEffect(() => {
-        const fetchContacts = async () => {
-            const savedBy = user?.twilioNumber;
-            if (!savedBy) {
-                setError("Something went wrong...")
-                return
-            };
-            try {
-                const res = await fetch(`/api/dev/get-contacts?savedBy=${encodeURIComponent(savedBy)}`);
-                const data = await res.json();
-                setContacts(data.contacts || []);
-                setError("")
-            } catch (err) {
-                console.error('Error fetching contacts:', err);
-                setError("Something went wrong...")
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (user?.twilioNumber) {
-            fetchContacts();
-        }
-    }, [user?.twilioNumber]);
+    }, [user?.id]);
 
     const createContact = async () => {
         setLoading(true);
-        setError('');
+        setContactSaveError('');
+
+        const trimmedName = nameInput.trim();
+        const trimmedPhone = phoneInput.trim();
+
+        // Basic phone number validation (e.g., at least 10 digits and only numbers)
+        // const phoneRegex = /^\d{10,15}$/;
+
+        // Input validation
+        if (!trimmedName || !trimmedPhone) {
+            setContactSaveError('Both name and phone number are required.');
+            setLoading(false);
+            return;
+        }
+
+        // if (!phoneRegex.test(trimmedPhone)) {
+        //     setContactSaveError('Enter a valid phone number (10-15 digits).');
+        //     setLoading(false);
+        //     return;
+        // }
+
+        if (!user?.id) {
+            setContactSaveError('User ID missing. Please log in again.');
+            setLoading(false);
+            return;
+        }
 
         const payload = {
-            name: nameInput,
-            phoneNumber: phoneInput,
-            savedBy: user?.twilioNumber,
+            name: trimmedName,
+            phoneNumber: trimmedPhone,
+            savedBy: user?.id,
         };
 
         try {
-            const res = await fetch('/api/dev/save-contact', {
+            const res = await fetch('/api/user/save-contact', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -88,19 +91,29 @@ const NewRightSideBar = () => {
             });
 
             if (res.ok) {
-                setNameInput("")
-                setShowPopup(false)
+                setNameInput("");
+                setPhoneInput("");
+                setBasePhoneInput(""); // reset for keypad
+                setShowPopup(false);
+                setContactSaveError('');
                 await fetchContacts();
             } else {
                 const data = await res.json();
-                setError(data.error || 'Something went wrong.');
+                setContactSaveError(data.error || 'Something went wrong.');
             }
         } catch (err) {
             console.error('Something went wrong:', err);
-            setError('Something went wrong');
+            setContactSaveError('Something went wrong');
         } finally {
             setLoading(false);
         }
+    };
+    const handleDeleteContact = () => {
+        fetchContacts();
+    }
+
+    const handleEditContact = () => {
+        fetchContacts();
     };
 
 
@@ -109,84 +122,51 @@ const NewRightSideBar = () => {
             {/* Contacts */}
             <p>{error && <span className="text-red-500">{error}</span>}</p>
             <div className="p-4 overflow-y-auto flex-1">
-                <h2 className="text-lg font-semibold mb-4">Contacts</h2>
-                {contacts.length > 0 ? (
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Contacts</h2>
+                    <button
+                        onClick={() => setShowKeypad(prev => !prev)}
+                        className="text-blue-500 hover:text-blue-700 p-1 rounded-full"
+                        title={showKeypad ? "Close Keypad" : "Add New Contact"}
+                    >
+                        <IoMdAdd className="text-2xl" />
+                    </button>
+                </div>
+                {loading ? (
+                    <p className="text-sm text-gray-500">Loading contacts...</p>
+                ) : contacts.length > 0 ? (
                     <ul className="space-y-3">
                         {contacts.map((contact) => (
-                            <li
-                                key={contact.id}
-                                className="flex items-center justify-between bg-gray-100 p-3 rounded-xl shadow-sm"
-                            >
-                                <div className="flex flex-col">
-                                    <span className="font-medium">{contact.name}</span>
-                                    <span className="text-sm text-gray-600">{contact.phoneNumber}</span>
-                                </div>
-
-                                <button
-                                    onClick={() => {
-                                        setSelectedChat(contact.phoneNumber);
-                                        setShowNewMessageComposer(false);
-                                    }}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow transition"
-                                    title="Chat"
-                                >
-                                    <IoChatbox />
-                                </button>
-                            </li>
+                            <ContactItem
+                                key={contact._id!}
+                                id={contact._id!}
+                                name={contact.name}
+                                phoneNumber={contact.phoneNumber}
+                                onChat={() => {
+                                    setSelectedChat(contact.phoneNumber);
+                                    setShowNewMessageComposer(false);
+                                }}
+                                onDeleted={handleDeleteContact}
+                                onEdited={handleEditContact}
+                            />
                         ))}
                     </ul>
                 ) : (
                     <p className="text-sm text-gray-500">No contacts saved.</p>
                 )}
+
             </div>
 
             {showKeypad && (
-                <div className="absolute bottom-16 left-0 right-0 bg-white border-t p-4 rounded-t-2xl shadow-md z-10">
-                    {/* Input + Small Save Button Row */}
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                value={phoneInput}
-                                onChange={(e) => setPhoneInput(e.target.value)}
-                                className="w-full p-2 pr-10 border rounded-lg text-center text-lg"
-                                placeholder="Enter phone number"
-                            />
-                            {phoneInput && (
-                                <button
-                                    onClick={() => setPhoneInput((prev) => prev.slice(0, -1))}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-lg"
-                                    title="Clear"
-                                >
-                                   <FaDeleteLeft />
-                                </button>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => setShowPopup(true)}
-                            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full flex items-center justify-center"
-                            title="Save Contact"
-                        >
-                           <FaPlus />
-                        </button>
-
-                    </div>
-
-                    {/* Keypad grid */}
-                    <div className="grid grid-cols-3 gap-3 text-center text-lg font-semibold">
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '0', '#'].map((d) => (
-                            <button
-                                key={d}
-                                onClick={() => setPhoneInput(prev => prev + d)}
-                                className="bg-gray-200 p-4 rounded-xl"
-                            >
-                                {d}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <Keypad
+                    phoneInput={basePhoneInput}
+                    setPhoneInput={setBasePhoneInput}
+                    onSave={(fullNumber: string) => {
+                        setPhoneInput(fullNumber); // full number includes country code
+                        setShowPopup(true);
+                    }}
+                />
             )}
-
             {/* Toggle Keypad Button */}
             <div className="p-4 border-t">
                 <button
@@ -223,7 +203,11 @@ const NewRightSideBar = () => {
 
                         <div className="flex justify-end gap-2 pt-2">
                             <button
-                                onClick={() => setShowPopup(false)}
+                                onClick={() => {
+                                    setPhoneInput("");
+                                    setShowPopup(false);
+                                    setContactSaveError('');
+                                }}
                                 className="px-4 py-2 text-sm text-gray-600 hover:underline"
                             >
                                 Cancel
@@ -231,13 +215,14 @@ const NewRightSideBar = () => {
                             <button
                                 onClick={async () => {
                                     await createContact();
-                                    setShowPopup(false);
+                                    // setShowPopup(false);
                                 }}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                             >
                                 {loading ? 'Saving...' : 'Save'}
                             </button>
                         </div>
+                        <p>{contactSaveError && <span className="text-red-500">{contactSaveError}</span>}</p>
                     </div>
                 </div>
             )}

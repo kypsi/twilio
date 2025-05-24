@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
         const token = jwt.sign(
             {
                 userId: user._id,
+                id: user._id,
                 email: user.email,
                 twilioNumber: user.twilioNumber,
                 name: user.name,

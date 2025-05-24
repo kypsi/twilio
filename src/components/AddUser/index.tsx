@@ -1,5 +1,6 @@
 import { User } from '@/types/user'
 import React, { useState } from 'react'
+import { countries } from '../Keypad'
 
 interface AddUserProps {
   setShowCreateModal: (show: boolean) => void
@@ -23,6 +24,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
   const [submitMessage, setSubmitMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [countryCode, setCountryCode] = useState('+1')
 
   const validateForm = () => {
     const errors: { [key: string]: string } = {}
@@ -52,7 +54,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
 
     setIsSubmitting(true)
     setSubmitMessage('')
-    console.log("frontend",formData)
+    console.log("frontend", formData)
     try {
       const res = await fetch('/api/admin/create-user', {
         method: 'POST',
@@ -61,7 +63,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
           name: formData.name.trim(),
           email: formData.email.trim(),
           password: formData.password.trim(),
-          twilioNumber: formData.twilioNumber.trim(),
+          twilioNumber: `${countryCode}${formData.twilioNumber.trim()}`,
           role: formData.role,
         }),
       })
@@ -113,7 +115,7 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
           <h2 className="text-lg font-semibold mb-4">Create New User</h2>
 
           <div className="space-y-3">
-            {(['name', 'email', 'twilioNumber'] as FormField[]).map(field => (
+            {(['name', 'email'] as FormField[]).map(field => (
               <div key={field}>
                 <input
                   type="text"
@@ -124,35 +126,30 @@ const AddUser: React.FC<AddUserProps> = ({ setShowCreateModal, setUsers, setLoad
                   className="w-full border px-3 py-2 rounded"
                 />
                 {formErrors[field] && <p className="text-red-500 text-sm">{formErrors[field]}</p>}
+
               </div>
             ))}
-
-            {/* <div>
+            <div className="flex gap-2">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="w-[100px] border px-1 py-2 rounded bg-gray-100 text-sm"
+              >
+                {countries.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    ({c.code}) {c.name}
+                  </option>
+                ))}
+              </select>
               <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
+                type="text"
+                name="twilioNumber"
+                placeholder="Phone Number"
+                value={formData.twilioNumber}
                 onChange={handleInputChange}
-                className="w-full border px-3 py-2 rounded"
+                className="flex-1 border px-1 py-2 rounded"
               />
-              {formErrors.password && <p className="text-red-500 text-sm">{formErrors.password}</p>}
             </div>
-
-            <div>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="w-full border px-3 py-2 rounded"
-              />
-              {formErrors.confirmPassword && (
-                <p className="text-red-500 text-sm">{formErrors.confirmPassword}</p>
-              )}
-            </div> */}
-
             {(['password', 'confirmPassword'] as FormField[]).map(field => (
               <div key={field} className="relative">
                 <input

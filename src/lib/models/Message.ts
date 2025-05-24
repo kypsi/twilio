@@ -7,6 +7,7 @@ export interface IMessage extends Document {
   content: string;
   mediaUrl?: string;
   createdAt: Date;
+  recipients: string[];
 }
 
 const MessageSchema = new Schema<IMessage>({
@@ -14,6 +15,7 @@ const MessageSchema = new Schema<IMessage>({
   sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String },
   mediaUrl: { type: String },
+  recipients: { type: [String] },
 }, { timestamps: true });
 
 export default mongoose.models.Message || mongoose.model<IMessage>('Message', MessageSchema);

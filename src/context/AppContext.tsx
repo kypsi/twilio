@@ -13,14 +13,13 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null)
-    const [selectedChatNumber, setSelectedChatNumber ] = useState<string>('')
+    const [selectedChatNumber, setSelectedChatNumber] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true)
-    const [chats, setChats] = useState<Chats[]>([])
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>("");
     const [showNewMessageComposer, setShowNewMessageComposer] = useState(false);
-    const [selectedChat, setSelectedChat] = useState<string | null>(null);
+    const [chats, setChats] = useState<Chats[]>([])
     const [contacts, setContacts] = useState<Contact[]>([]);
-
+    const [selectedChat, setSelectedChat] = useState<string | null>(null);
 
     const router = useRouter()
 
@@ -33,20 +32,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
             })
             .finally(() => setLoading(false))
     }, [])
-
-    useEffect(() => {
-        if (!user?.twilioNumber) return
-        const fetchChats = async () => {
-            try {
-                const res = await fetch(`/api/dev/messages/recent?twilioNumber=${user.twilioNumber}`)
-                const data = await res.json()
-                setChats(data)
-            } catch (err) {
-                console.error("Failed to fetch chats", err)
-            }
-        }
-        fetchChats()
-    }, [user])
 
     const login = async (email: string, password: string) => {
         try {
@@ -69,7 +54,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <AppContext.Provider value={{ user, loading, login, logout,contacts, setContacts, selectedChatNumber, setSelectedChatNumber, chats, setChats, selectedConversationId ,setSelectedConversationId, showNewMessageComposer, setShowNewMessageComposer, selectedChat, setSelectedChat }}>
+        <AppContext.Provider value={{ user, loading, login, logout, contacts, setContacts, selectedChatNumber, setSelectedChatNumber, chats, setChats, selectedConversationId, setSelectedConversationId, showNewMessageComposer, setShowNewMessageComposer, selectedChat, setSelectedChat }}>
             {children}
         </AppContext.Provider>
     )
