@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
         // Find all chats involving this user's twilioNumber
         const chats = await Chat.find({ participantNumbers: twilioNumber })
             .sort({ updatedAt: -1 })
-            .populate('lastMessage');
+            // .populate('lastMessage');
 
         // Fetch contacts saved by this user
         const contacts = await Contact.find({ savedBy: user._id });
