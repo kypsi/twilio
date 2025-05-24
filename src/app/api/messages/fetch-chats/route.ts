@@ -4,6 +4,7 @@ import connectDB from '@/lib/mongo';
 import Chat from '@/lib/models/Chat';
 import Contact from '@/lib/models/Contact';
 import User from '@/lib/models/User';
+// import Message from '@/lib/models/Message'; 
 
 export async function POST(req: NextRequest) {
     try {
@@ -25,13 +26,14 @@ export async function POST(req: NextRequest) {
         const chats = await Chat.find({ participantNumbers: twilioNumber })
             .sort({ updatedAt: -1 })
             // .populate('lastMessage');
-
+ 
+            console.log("chats", chats)
         // Fetch contacts saved by this user
         const contacts = await Contact.find({ savedBy: user._id });
 
         // Map contacts for quick lookup: phoneNumber -> name
         const contactMap = new Map(contacts.map(c => [c.phoneNumber, c.name]));
-
+ 
         const responseChats = chats.map(chat => {
             // Filter out logged-in user's number to find other participant(s)
             const otherNumbers = chat.participantNumbers.filter((num: string) => num !== twilioNumber);
@@ -48,7 +50,7 @@ export async function POST(req: NextRequest) {
                 chatId: chat._id,
                 name: chatName,
                 isGroupChat: chat.isGroupChat,
-                lastMessage: chat.lastMessage?.content || '',
+                lastMessage: chat.lastMessageContent || '',
                 time: chat.lastMessage?.createdAt || chat.updatedAt,
                 participantNumbers: chat.participantNumbers,
             };

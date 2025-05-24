@@ -1,5 +1,6 @@
 // lib/models/Chat.ts
 import mongoose, { Schema, Document } from 'mongoose';
+// import Message from '@/lib/models/Message';
 
 export interface IChat extends Document {
   name?: string;
