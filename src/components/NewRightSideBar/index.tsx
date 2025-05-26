@@ -7,6 +7,7 @@ import { IoIosKeypad, IoMdAdd } from "react-icons/io";
 // import { FaPlus } from "react-icons/fa";
 import ContactItem from '../ContactItem';
 import Keypad from '../Keypad';
+import { Contact } from '@/types/contact';
 
 
 const NewRightSideBar = () => {
@@ -116,6 +117,30 @@ const NewRightSideBar = () => {
         fetchContacts();
     };
 
+    const getOrCreateChat = async (contact: Contact) => {
+        if (!user?.twilioNumber) return;
+
+        try {
+            const res = await fetch('/api/messages/get-or-create-chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from: user.twilioNumber,
+                    participantNumbers: [user.twilioNumber, contact.phoneNumber],
+                }),
+            });
+
+            const data = await res.json();
+            if (data.success && data.chat) {
+                setSelectedChat(data.chat._id);
+                setShowNewMessageComposer(false);
+            } else {
+                console.error("Error getting or creating chat:", data.error || data.message);
+            }
+        } catch (err) {
+            console.error("Error fetching or creating chat:", err);
+        }
+    };
 
     return (
         <div className="w-full h-full flex flex-col justify-between md:bg-white md:rounded-2xl lg:rounded-3xl md:shadow-md mb-4 relative">
@@ -142,10 +167,11 @@ const NewRightSideBar = () => {
                                 id={contact._id!}
                                 name={contact.name}
                                 phoneNumber={contact.phoneNumber}
-                                onChat={() => {
-                                    setSelectedChat(contact.phoneNumber);
-                                    setShowNewMessageComposer(false);
-                                }}
+                                // onChat={() => {
+                                //     setSelectedChat(contact.phoneNumber);
+                                //     setShowNewMessageComposer(false);
+                                // }}
+                                onChat={() => { getOrCreateChat(contact) }}
                                 onDeleted={handleDeleteContact}
                                 onEdited={handleEditContact}
                             />

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
             .sort({ updatedAt: -1 })
             // .populate('lastMessage');
  
-            console.log("chats", chats)
+            // console.log("chats", chats)
         // Fetch contacts saved by this user
         const contacts = await Contact.find({ savedBy: user._id });
 

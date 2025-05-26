@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { from, to, body: messageBody } = body;
         // console.log("body", body)
-        console.log("from", from)
-        console.log("to", to)
-        console.log("messageBody", messageBody)
+        // console.log("from", from)
+        // console.log("to", to)
+        // console.log("messageBody", messageBody)
         if (!from || !to || !messageBody || !Array.isArray(to) || to.length === 0) {
             return NextResponse.json({ success: false, message: 'Missing or invalid fields' }, { status: 400 });
         }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
                 name: `Group Chat ${Date.now()}`,
                 admin: sender._id,
             });
-            console.log("Creating chat with:", allParticipants);
+            // console.log("Creating chat with:", allParticipants);
         }
 
         // Save message
