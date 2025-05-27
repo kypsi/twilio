@@ -3,7 +3,11 @@ import connectDB from '@/lib/mongo';
 import Chat from '@/lib/models/Chat';
 import Message from '@/lib/models/Message';
 import User from '@/lib/models/User';
+import twilio from "twilio";
+
 // import Contact from '@/lib/models/Contact';
+
+const client = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
 
 export async function POST(req: NextRequest) {
     try {
@@ -44,13 +48,25 @@ export async function POST(req: NextRequest) {
             chat = await Chat.create({
                 isGroupChat: to.length > 1,
                 participantNumbers: allParticipants,
-                // name: to.length > 1
-                //     ? `Group Chat ${Date.now()}`
-                //     : savedContactName,
                 name: `Group Chat ${Date.now()}`,
                 admin: sender._id,
             });
             // console.log("Creating chat with:", allParticipants);
+        }
+
+        const sendResults = [];
+        for (const recipient of to) {
+            try {
+                const message = await client.messages.create({
+                    from,
+                    to: recipient,
+                    body: messageBody,
+                });
+                sendResults.push({ to: recipient, sid: message.sid, status: 'sent' });
+            } catch (err) {
+                console.error(`Failed to send SMS to ${recipient}`, err);
+                sendResults.push({ to: recipient, error: 'Failed to send SMS' });
+            }
         }
 
         // Save message
@@ -70,6 +86,7 @@ export async function POST(req: NextRequest) {
             success: true,
             chatId: chat._id,
             messageId: newMessage._id,
+            sendResults,
         });
 
     } catch (err) {
