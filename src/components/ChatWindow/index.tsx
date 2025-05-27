@@ -1,10 +1,9 @@
 import { useApp } from '@/context/AppContext';
-import Image from 'next/image';
 import React, { useEffect, useState, useRef } from 'react';
-import default_profile from "../../assest/default_profile.jpg";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { FiRefreshCw } from 'react-icons/fi';
-import { IoMdClose } from 'react-icons/io';
+import ChatHeader from '../ChatHeader';
+import { IoMdAttach } from 'react-icons/io';
+import { IoSend } from 'react-icons/io5';
 
 interface Message {
     _id?: string;
@@ -16,6 +15,7 @@ interface Message {
 }
 
 interface Chat {
+    createdAt: string | number | Date;
     _id: string;
     name: string;
     isGroupChat: boolean;
@@ -48,17 +48,27 @@ const ChatWindow: React.FC = () => {
     const [chatInfo, setChatInfo] = useState<Chat | null>(null);
     const [newMsg, setNewMsg] = useState("");
     const [isSending, setIsSending] = useState(false);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [renameMode, setRenameMode] = useState(false);
-    const [tempName, setTempName] = useState("");
     // const [chatLoading, setChatLoading] = useState(false);
     const bottomRef = useRef<HTMLDivElement | null>(null);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
     useEffect(() => {
         if (bottomRef.current) {
             bottomRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages]);
+
+    useEffect(() => {
+        if (!selectedChat) return;
+
+        fetchMessages();
+
+        const interval = setInterval(() => {
+            fetchMessages();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [selectedChat]);
 
     const fetchMessages = async () => {
         if (!selectedChat) return;
@@ -79,16 +89,20 @@ const ChatWindow: React.FC = () => {
                 message_text: msg.content,
                 time_stamp: msg.createdAt,
             }));
-            setMessages(mappedMessages);
-            setChatInfo(data.chat); // ✅ store chat info
+            // setMessages(mappedMessages);
+            // setChatInfo(data.chat); 
+            const isSame =
+                messages.length === mappedMessages.length &&
+                messages[messages.length - 1]?._id === mappedMessages[mappedMessages.length - 1]?._id;
+
+            if (!isSame) {
+                setMessages(mappedMessages);
+                setChatInfo(data.chat);
+            }
         } else {
             console.error('Failed to fetch messages:', data.error);
         }
     };
-    useEffect(() => {
-
-        fetchMessages();
-    }, [selectedChat]);
 
     const sendMessage = async () => {
         if (!newMsg || !user?.id || !user?.twilioNumber || !chatInfo) return;
@@ -108,7 +122,6 @@ const ChatWindow: React.FC = () => {
             });
 
             const data = await res.json();
-
             if (data.success) {
                 const newMessage: Message = {
                     sender_id: user.id,
@@ -141,7 +154,6 @@ const ChatWindow: React.FC = () => {
                 alert('Message failed to send');
                 console.error(data.message || data.error);
             }
-
         } catch (err) {
             console.error('Send error:', err);
         } finally {
@@ -168,166 +180,121 @@ const ChatWindow: React.FC = () => {
         }
     };
 
-    const handleRenameToggle = async () => {
-        if (chatInfo) {
-            setRenameMode(true);
-            setTempName(chatInfo.name);
-        }
-    };
-    const handleRenameChat = async () => {
-        if (!tempName.trim() || !chatInfo) return;
-
-        const res = await fetch('/api/messages/change-chat-name', {
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!user?.id) return;
+        console.log("userId:", user.id)
+        console.log("messageId:", messageId)
+        const res = await fetch('/api/messages/delete-message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chatId: chatInfo._id,
-                newName: tempName.trim(),
-                adminId: user?.id,
-            }),
+            body: JSON.stringify({ messageId, userId: user.id }),
         });
-
         const data = await res.json();
+
         if (data.success) {
-            setChatInfo(prev => prev ? { ...prev, name: tempName.trim() } : null);
-            setRenameMode(false);
+            // Remove message locally
+            setMessages(prev => prev.filter(m => m._id !== messageId));
+
+            // Update chat info if needed
+            if (data.updatedLastMessageContent) {
+                setChatInfo(prev => prev ? { ...prev, lastMessageContent: data.updatedLastMessageContent } : prev);
+            }
+            setOpenDropdownId(null);
         } else {
-            alert(data.message || "Failed to rename group");
+            alert(data.error || 'Failed to delete message');
         }
-    }
+    };
 
     return (
-        <div className="flex flex-col h-full">
-            {/* Chat Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-white shadow-sm">
-                <div className="flex items-center gap-3">
-                    <Image
-                        src={default_profile}
-                        alt="Profile"
-                        width={45}
-                        height={45}
-                        className="rounded-full object-cover"
-                    />
-                    <div className="font-medium text-sm">
-                        {chatInfo ? (
-                            chatInfo.isGroupChat ? (
-                                renameMode ? (
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="text"
-                                            value={tempName}
-                                            onChange={(e) => setTempName(e.target.value)}
-                                            className="border px-2 py-1 text-sm rounded"
-                                        />
-                                        <button
-                                            onClick={() => { handleRenameChat() }}
-                                            className="text-blue-600 text-sm hover:underline"
-                                        >
-                                            Save
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setRenameMode(false);
-                                                setTempName(chatInfo.name);
-                                            }}
-                                            className="text-gray-500 text-sm hover:underline"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                ) : (
-                                    chatInfo.name
-                                )
-                            ) : (
-                                getContactName(chatInfo.participantNumbers.find(num => num !== user?.twilioNumber) || '')
-                            )
-                        ) : "No contact selected"}
-                    </div>
+        <div className="flex flex-col h-full bg-gradient-to-tr from-indigo-50 to-white ">
+            {/* chat header */}
+            <ChatHeader chatInfo={chatInfo} handleRefreshChats={handleRefreshChats} handleDeleteMessages={handleDeleteMessages} getContactName={getContactName} setChatInfo={setChatInfo} />
 
-                </div>
-                <div className="relative">
-                    <button className='cursor-pointer' onClick={() => setShowDropdown(prev => !prev)}>
-                        {showDropdown ? <IoMdClose /> : <BsThreeDotsVertical />}
-                    </button>
-
-                    {showDropdown && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded z-10">
-                            <button
-                                onClick={() => {
-                                    handleRefreshChats();
-                                    setShowDropdown(false);
-                                }}
-                                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100 flex items-center justify-between"
-                            >
-                                Refresh <FiRefreshCw size={20} />
-                            </button>
-
-                            {chatInfo?.isGroupChat && chatInfo.admin === user?.id && (
-                                <button
-                                    onClick={() => {
-                                        handleRenameToggle();
-                                        setShowDropdown(false);
-                                    }}
-                                    className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
-                                >
-                                    Rename Group
-                                </button>
-                            )}
-
-                            <button
-                                onClick={() => {
-                                    handleDeleteMessages();
-                                    setShowDropdown(false);
-                                }}
-                                className="w-full px-4 py-2 text-sm text-left hover:bg-gray-100"
-                            >
-                                Delete All Messages
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Chat Body */}
-            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2 bg-gray-50">
+            {/* CHAT BODY */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4  from-indigo-50 to-white">
                 {messages.map((msg, i) => {
                     const isMe = msg.sender_id === user?.id;
                     const isGroup = chatInfo?.isGroupChat;
                     const showSenderInfo = isGroup && !isMe;
                     const senderName = getContactName(msg.recipient_number);
+
                     return (
                         <div key={msg._id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm shadow ${isMe ? 'bg-green-300' : 'bg-white'}`}>
-                                {showSenderInfo && (
-                                    <div className="text-xs text-gray-500 font-medium mb-1 ml-1">
-                                        {senderName}
+                            <div className="relative group max-w-[75%]">
+                                <div
+                                    className={`px-4 py-3 rounded-2xl text-sm shadow-md transition duration-200 ${isMe
+                                        ? 'bg-green-200 text-gray-800'
+                                        : 'bg-white text-gray-900'
+                                        } ${isMe && 'pr-10'}`} // Add right padding to make space for the 3-dot icon
+                                >
+                                    {showSenderInfo && (
+                                        <div className="text-xs text-gray-500 font-medium mb-1 ml-1">
+                                            {senderName}
+                                        </div>
+                                    )}
+
+                                    <div className="whitespace-pre-wrap break-words">{msg.message_text}</div>
+
+                                    <div
+                                        className={`text-[10px] text-gray-500 mt-2 ${isMe ? 'text-right' : 'text-left'
+                                            }`}
+                                    >
+                                        {new Date(msg.time_stamp).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Dropdown Icon (Three Dots) */}
+                                {isMe && (
+                                    <div className="absolute top-1.5 right-2 p-1">
+                                        <BsThreeDotsVertical
+                                            onClick={() =>
+                                                setOpenDropdownId(
+                                                    openDropdownId === msg?._id ? null : msg?._id ?? null
+                                                )
+                                            }
+                                            className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                                        />
+
+                                        {/* Dropdown Menu */}
+                                        {openDropdownId === msg._id && (
+                                            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                                                <button
+                                                    onClick={() => handleDeleteMessage(msg._id!)}
+                                                    className="block w-full px-4 py-2 text-sm text-left text-red-600 hover:bg-red-50"
+                                                >
+                                                    Delete Message
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
-                                <div>{msg.message_text}</div>
-                                <div className={`text-[10px] text-gray-500 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
-                                    {new Date(msg.time_stamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
                             </div>
                         </div>
                     );
                 })}
                 <div ref={bottomRef} />
             </div>
-
             {/* Input Section */}
-            <div className="flex px-4 py-3 border-t bg-white">
-                <input
-                    value={newMsg}
-                    onChange={(e) => setNewMsg(e.target.value)}
-                    className="flex-1 border rounded-full px-4 py-2 outline-none"
-                    placeholder="Type a message"
-                />
+            <div className="flex items-center px-2 py-3  bg-white gap-2 ">
+                <div className="flex flex-1 items-center  rounded-md px-4 py-2 shadow-sm">
+                    <input value={newMsg} onChange={(e) => setNewMsg(e.target.value)} className="flex-1 bg-transparent outline-none text-sm placeholder-gray-500" placeholder="Type a message..." />
+                    <button onClick={() => alert('Media upload not available right now')} className="text-gray-500 hover:text-gray-700 transition ml-2" title="Add media" >
+                        <IoMdAttach size={22} />
+                    </button>
+                </div>
                 <button
                     onClick={sendMessage}
-                    className="ml-2 bg-blue-500 text-white px-4 py-2 rounded-full"
                     disabled={isSending}
+                    className="ml-2 p-2 bg-indigo-600 text-white rounded-full cursor-pointer shadow-md hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-opacity-75  disabled:opacity-50 flex items-center justify-center"
                 >
-                    {isSending ? "Sending..." : "Send"}
+                    {isSending ? (
+                        <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                        <IoSend size={20} />
+                    )}
                 </button>
             </div>
         </div>

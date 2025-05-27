@@ -13,13 +13,16 @@ const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null)
-    const [selectedChatNumber, setSelectedChatNumber] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true)
+    
+    const [selectedChatNumber, setSelectedChatNumber] = useState<string>('')
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>("");
-    const [showNewMessageComposer, setShowNewMessageComposer] = useState(false);
-    const [chats, setChats] = useState<Chats[]>([])
-    const [contacts, setContacts] = useState<Contact[]>([]);
     const [selectedChat, setSelectedChat] = useState<string | null>(null);
+    const [showNewMessageComposer, setShowNewMessageComposer] = useState(false);
+
+    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [chats, setChats] = useState<Chats[]>([])
+
 
     const router = useRouter()
 

@@ -1,41 +1,73 @@
 'use client';
 
 import { useApp } from '@/context/AppContext';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { IoAdd } from "react-icons/io5";
 import default_profile from "../../assest/default_profile.jpg";
 import Image from 'next/image';
 import { FiRefreshCw } from "react-icons/fi";
 
-
 const NewLeftSideBar = () => {
     const { setShowNewMessageComposer, user, setSelectedChat, chats, setChats, } = useApp();
     // const [chats, setChats] = useState<ChatPreview[]>([]);
+    const chatsRef = useRef(chats);
+    chatsRef.current = chats;
 
     const fetchChats = async () => {
         if (!user?.twilioNumber) return;
-        const res = await fetch('/api/messages/fetch-chats', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ twilioNumber: user?.twilioNumber }),
-        });
-        const data = await res.json();
-        if (data.success) {
-            setChats(data.chats);
+
+        try {
+            const res = await fetch('/api/messages/fetch-chats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ twilioNumber: user?.twilioNumber }),
+            });
+            const data = await res.json();
+            // if (data.success) {
+            //     setChats(data.chats);
+            // }
+
+            if (data.success && Array.isArray(data.chats)) {
+                const newChats = data.chats;
+                const currentChatsMap = new Map(chatsRef.current.map(c => [c.chatId, c]));
+                let updateNeeded = false;
+
+                // Check for new or updated chats
+                for (const newChat of newChats) {
+                    const existingChat = currentChatsMap.get(newChat.chatId);
+                    if (
+                        !existingChat ||
+                        existingChat.lastMessage !== newChat.lastMessage ||
+                        existingChat.time !== newChat.time
+                    ) {
+                        updateNeeded = true;
+                        break;
+                    }
+                }
+                // Check if chats removed
+                if (!updateNeeded && newChats.length !== chatsRef.current.length) {
+                    updateNeeded = true;
+                }
+
+                if (updateNeeded) {
+                    setChats(newChats);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch chats:", error);
         }
+
     };
     useEffect(() => {
+        if (!user?.twilioNumber) return;
 
         fetchChats();
-    }, [user?.twilioNumber]);
+        const interval = setInterval(() => {
+            fetchChats();
+        }, 5000);
 
-    // const getContactName = (number: string) => {
-    //     // console.log("Contacts from context:", contacts);
-    //     // console.log("Looking for contact with number:", number);
-    //     const found = contacts.find(contact => contact.phoneNumber === number);
-    //     // console.log("Matched contact:", found);
-    //     return found?.name || number;
-    // };
+        return () => clearInterval(interval);
+    }, [user?.twilioNumber, fetchChats]);
 
     const formatChatTime = (timeStr: string) => {
         const time = new Date(timeStr);

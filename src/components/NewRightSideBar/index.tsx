@@ -2,9 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { IoIosKeypad, IoMdAdd } from "react-icons/io";
-// import { IoChatbox } from "react-icons/io5";
-// import { FaDeleteLeft } from "react-icons/fa6";
-// import { FaPlus } from "react-icons/fa";
 import ContactItem from '../ContactItem';
 import Keypad from '../Keypad';
 import { Contact } from '@/types/contact';
@@ -109,6 +106,7 @@ const NewRightSideBar = () => {
             setLoading(false);
         }
     };
+
     const handleDeleteContact = () => {
         fetchContacts();
     }
